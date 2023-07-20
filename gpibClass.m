@@ -1,12 +1,21 @@
+% Matlab class for working with NI GPIB USB HS2 Adapter
+% Uwe Rother
+% 23-07-20
+
+
 classdef gpibClass
     properties 
         name = 'NI GPIB USB-HS';
-        index = 0;
-        open = false;
+        index = 0;  %nr of the adapter
+        open = false;   
     end
     %----
     methods
         % constructor
+        % gpibClass() 
+        % gpibClass(8) -> use adapter nr. 8
+        % gpibClass('MyAdapterName')
+        % gpibClass('MyAdapterName',2) -> name, index
         function obj = gpibClass(varargin)
             if nargin == 0
                 % disp('0');
