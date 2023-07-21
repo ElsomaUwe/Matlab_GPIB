@@ -36,7 +36,7 @@ classdef gpibClass
         
         function init(obj)
             % reset interface
-            instrreset;
+            
             s = sprintf('%s: initialized',obj.name);
             disp(s);
         end

@@ -2,7 +2,8 @@ classdef HP4192A
     properties
         h
         name = 'HP4192A';
-     end
+    end
+    
     methods
         function obj = HP4192A(handle)
             %Konstruktor
@@ -10,7 +11,8 @@ classdef HP4192A
             obj.h = handle;
         end
         function init(obj)
-            
+            s = sprintf("%s init",obj.name);
+            disp(s);
         end
         
         function reset(obj)

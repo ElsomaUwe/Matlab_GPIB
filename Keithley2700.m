@@ -1,6 +1,7 @@
 classdef Keithley2700
     properties
         h
+        name = "Keithley 2700";
     end
     methods
         function obj = Keithley2700(handle)
