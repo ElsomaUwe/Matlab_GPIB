@@ -1,0 +1,158 @@
+% GPIB Test Suite
+% Uwe Rother
+clear;
+clc;
+close all;
+
+run('GPIB_preludium.m');
+
+% GPIP Verbindung mit HP4192A aufbauen
+hRcl = myGpib.connect(gpibAddrHP4192A);
+rcl = HP4192A(hRcl);
+% rcl.reset();
+
+if strcmp(hRcl.status,'open')
+    disp('HP4192A verbunden');
+else
+    disp('KHP4192A nicht verbunden');
+end
+
+
+% Vorbereiten der Messdaten
+sampleRate = 0.5;      % Abtastrate in Sekunden
+f = [1400.00:10.0:2000.0];
+numSamples = length(f);
+
+L = zeros(numSamples, 1);
+Q = zeros(numSamples, 1);
+Z = zeros(numSamples, 1);
+R = zeros(numSamples, 1);
+C = zeros(numSamples, 1);
+Phi = zeros(numSamples, 1);
+
+time = zeros(numSamples, 1);
+tlog = zeros(numSamples, 1);
+tstart= 0;
+
+% Grafik erstellen
+h= figure;
+p = plot(tlog,L);
+grid on;
+xlabel('f/kHz');
+ylabel('L/nH');
+title('Induktivität');
+% Y-Achse skalieren
+xlim([f(1) f(end)]);
+ylim([0 50]);
+%xticks([0:20:tMax]);
+%yticks([20:10:300]);
+p.XDataSource = 'f';
+p.YDataSource = 'L';
+
+%make sure calibration is ok!
+% rcl.setRCL(1);
+
+rcl.setModeLQ();
+rcl.setSpotFreq(11.0);
+
+rcl.trigger;
+[value qualifier] = rcl.readAll;
+
+% Messung starten
+% fprintf(gpibObj, 'EX');
+for i = 1:numSamples
+    % Messdaten abrufen
+    rcl.setSpotFreq(f(i));
+    rcl.setModeLQ();
+    rcl.trigger();
+    [value qualifier] = rcl.readAll;
+    L(i) = value(1)*1E9;   
+    Q(i) = value(2);
+    rcl.setModeZdeg();
+    rcl.trigger();
+    [value qualifier] = rcl.readAll;
+    Z(i) = value(1);   
+    Phi(i) = value(2);
+    refreshdata(h);
+    % Warten bis zur nächsten Messung
+    pause(0.1);
+    
+    % Nächste Messung anfordern
+    %fprintf(hRCL, 'EX');
+end
+
+
+% Verbindung trennen
+myGpib.close(hRcl);
+figure;
+plot(f,Q);
+names = ['Z','L','Phi','Q'];
+col_names = {'Column1', 'Column2', 'Column3', 'Column4'};
+save_vectors_to_csv(Z,L,Phi,Q,'measurement.csv');
+
+% SRQ-Ereignisbehandlungsfunktion
+function handleSRQ(src, event)
+    % Hier können Sie den SRQ-Ereigniscode bearbeiten
+    % Fügen Sie Ihren Code zur Verarbeitung des SRQ-Ereignisses ein
+    disp('Service Request empfangen');
+end
+
+
+function [Cl,Q] = rclReadCapQ(hRCL)
+    rxMsg = fscanf(hRCL);
+    resVektor = (strsplit(rxMsg,','));
+    dispA = char(resVektor(1));
+    dispB = char(resVektor(2));
+    dispC = char(resVektor(3));
+    Cl = str2double(dispA(5:end));
+    Q = str2double(dispB(5:end));
+end
+
+function [value, unit, time] = str2value(str)
+    % Float-Zahl mit optionaler Einheit extrahieren
+    %match = regexp(str, '(-?\d+\.?\d*(?:e-?\d+)?)\s*(\w*)', 'tokens', 'once');
+    resVektor = string(strsplit(str,','));
+    
+    match = regexp(resVektor(1), '([-+]?\d*\.?\d+[eE][-+]?\d+)\s*(\w*)', 'tokens', 'once');
+    ltime = regexp(resVektor(2), '([-+]?\d*\.?\d+)\s*(\w*)', 'tokens', 'once');
+    time = str2double(ltime(1));
+
+    if ~isempty(match)
+        floatNum = str2double(match{1});
+        unit = match{2};
+    
+        % fprintf('Extrahierte Float-Zahl: %s\n', floatNum);
+        % fprintf('Extrahierte Einheit: %s\n', unit);
+    else
+        disp('Keine Float-Zahl gefunden.');
+    end
+    value = floatNum;
+    
+end
+
+function save_vectors_to_csv(vector1, vector2, vector3, vector4, col_names, filename)
+    % Überprüfen, ob die Eingabe-Vektoren die gleiche Länge haben
+    if ~isequal(numel(vector1), numel(vector2), numel(vector3), numel(vector4))
+        error('Alle Eingabe-Vektoren müssen die gleiche Länge haben.');
+    end
+    
+    % Überprüfen, ob die Anzahl der Spaltennamen korrekt ist
+    if numel(col_names) ~= 4
+        error('Es müssen genau vier Spaltennamen angegeben werden.');
+    end
+    
+    % Daten in eine Tabelle umwandeln
+    data = table(vector1, vector2, vector3, vector4);
+    
+    % Spaltennamen festlegen
+    variable_names = col_names;
+    data.Properties.VariableNames = variable_names;
+    
+    % CSV-Datei speichern
+    try
+        writetable(data, filename);
+        disp(['Die Daten wurden erfolgreich in der Datei ', filename, ' gespeichert.']);
+    catch
+        error('Fehler beim Speichern der Daten in der CSV-Datei.');
+    end
+end
