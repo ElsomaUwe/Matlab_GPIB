@@ -4,6 +4,90 @@ clear;
 clc;
 close all;
 
+filename = 'output_data.csv';
+
+f_start = 2.0;
+f_stop  = 100.0;
+f_step  = 2.0;
+C_max_nF   = 20000.0;
+Vbias   = 0.0;
+
+% Vorbereiten der Messdaten
+sampleRate = 0.5;      % Abtastrate in Sekunden
+f = [f_start:f_step:f_stop]';
+numSamples = length(f);
+
+Z = zeros(numSamples, 1);
+R = zeros(numSamples, 1);
+C = zeros(numSamples, 1);
+L = zeros(numSamples, 1);
+xL = zeros(numSamples, 1);
+QC = zeros(numSamples, 1);
+QL = zeros(numSamples, 1);
+Phi = zeros(numSamples, 1);
+rxstring = zeros(numSamples, 1);
+
+time = zeros(numSamples, 1);
+tlog = zeros(numSamples, 1);
+tstart= 0;
+
+% Grafik erstellen
+h= figure;
+
+subplot(2, 2, 1); % Oben links 
+p = plot(f,Z);
+grid on;
+title('Impedanz');
+xlabel('f/kHz');
+ylabel('Z/Ohm');
+xlim([f(1) f(end)]);
+% ylim([0 50]);
+%xticks([0:20:tMax]);
+%yticks([20:10:300]);
+p.XDataSource = 'f';
+p.YDataSource = 'Z';
+
+subplot(2, 2, 2); % Oben rechts
+p = plot(f,Phi);
+grid on;
+title('Phasenwinkel');
+xlabel('f/kHz');
+ylabel('Phi/°');
+xlim([f(1) f(end)]);
+ylim([-180 180]);
+%xticks([0:20:tMax]);
+yticks([-180:30:180]);
+p.XDataSource = 'f';
+p.YDataSource = 'Phi';
+
+subplot(2, 2, 3); % unten links
+p = plot(f,L);
+grid on;
+title('Induktivität');
+xlabel('f/kHz');
+ylabel('L/uH');
+xlim([f(1) f(end)]);
+% ylim([0 50]);
+%xticks([0:20:tMax]);
+%yticks([20:10:300]);
+p.XDataSource = 'f';
+p.YDataSource = 'L';
+
+subplot(2, 2, 4); % unten rechts
+p = plot(f,C);
+grid on;
+title('Kapazität');
+xlabel('f/kHz');
+ylabel('C/nF');
+xlim([f(1) f(end)]);
+if C_max_nF ~= 0.0
+    ylim([0 C_max_nF]);
+end
+%xticks([0:20:tMax]);
+%yticks([20:10:300]);
+p.XDataSource = 'f';
+p.YDataSource = 'C';
+
 run('GPIB_preludium.m');
 
 % GPIP Verbindung mit HP4192A aufbauen
@@ -17,50 +101,20 @@ else
     disp('KHP4192A nicht verbunden');
 end
 
-
-% Vorbereiten der Messdaten
-sampleRate = 0.5;      % Abtastrate in Sekunden
-f = [100.00:100.0:10000.0]';
-numSamples = length(f);
-
-Z = zeros(numSamples, 1);
-R = zeros(numSamples, 1);
-C = zeros(numSamples, 1);
-L = zeros(numSamples, 1);
-QC = zeros(numSamples, 1);
-QL = zeros(numSamples, 1);
-Phi = zeros(numSamples, 1);
-
-time = zeros(numSamples, 1);
-tlog = zeros(numSamples, 1);
-tstart= 0;
-
-% Grafik erstellen
-h= figure;
-p = plot(tlog,L);
-grid on;
-xlabel('f/kHz');
-ylabel('L/nH');
-title('Induktivität');
-% Y-Achse skalieren
-xlim([f(1) f(end)]);
-ylim([0 50]);
-%xticks([0:20:tMax]);
-%yticks([20:10:300]);
-p.XDataSource = 'f';
-p.YDataSource = 'L';
-
 %make sure calibration is ok!
 % rcl.setRCL(1);
-
+if Vbias == 0.0
+    rcl.setBiasOff();
+else
+    rcl.setSpotBias(Vbias);
+end
 rcl.setModeLQ();
-rcl.setSpotFreq(11.0);
+rcl.setSpotFreq(f(1));
 
 rcl.trigger;
 [value qualifier] = rcl.readAll;
 
 % Messung starten
-% fprintf(gpibObj, 'EX');
 for i = 1:numSamples
     % Messdaten abrufen
     rcl.setSpotFreq(f(i));
@@ -68,14 +122,23 @@ for i = 1:numSamples
     rcl.setModeLQ();
     rcl.trigger();
     [value qualifier] = rcl.readAll;
-    L(i) = value(1)*1E9;   
+    L(i) = value(1)*1E6;   
+    temp = rcl.readAll_B();
+    xL(i) = temp{1,1}*1E6;
+    
     QL(i) = value(2);
     %C
     rcl.setModeCQ();
     rcl.trigger();
     [value qualifier] = rcl.readAll;
-    C(i) = value(1);   
+    C(i) = value(1)*1E9;   
     QC(i) = value(2);
+    if qualifier{1}(1) ~= 'N'
+        C(i) = 0;
+    else
+        C(i) = C(i);
+    end
+
     %Z
     rcl.setModeZdeg();
     rcl.trigger();
@@ -86,18 +149,13 @@ for i = 1:numSamples
     % Warten bis zur nächsten Messung
     pause(0.1);
     
-    % Nächste Messung anfordern
-    %fprintf(hRCL, 'EX');
 end
 
-
+rcl.setBiasOff();
 % Verbindung trennen
 myGpib.close(hRcl);
-figure;
-plot(f,C);
 
 col_names = {'f','Z','Phi','L','QL','C','QC'};
-filename = 'output_data.csv';
 save_vectors_to_csv(f,Z,Phi,L,QL,C,QC,col_names,filename);
 
 % SRQ-Ereignisbehandlungsfunktion

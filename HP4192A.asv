@@ -141,7 +141,7 @@ classdef HP4192A
         
         function [number,letters] = extractData(obj,inputStr)
             % Definieren des regulären Ausdrucks
-            pattern = '([A-Z]{1,4})([-+]?\d+(\.\d+)?([eE][-+]?\d+)?)';
+            pattern = '([A-Z]{1,4})([-+]?\d+(\.\d+)?[eE][-+]?\d+)';
     
             % Extrahieren der Informationen mit dem regulären Ausdruck
             matches = regexp(inputStr, pattern, 'tokens','once');
