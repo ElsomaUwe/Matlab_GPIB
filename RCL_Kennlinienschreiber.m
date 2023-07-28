@@ -4,13 +4,15 @@ clear;
 clc;
 close all;
 
+instrreset;
+
 filename = 'output_data.csv';
 
-f_start = 2.0;
-f_stop  = 100.0;
-f_step  = 2.0;
-C_max_nF   = 20000.0;
-Vbias   = 0.0;
+f_start = 0.20;
+f_stop  = 50.0;
+f_step  = 0.2;
+C_max_nF   = 0;
+Vbias   = 5.0;
 
 % Vorbereiten der Messdaten
 sampleRate = 0.5;      % Abtastrate in Sekunden
