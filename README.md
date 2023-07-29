@@ -1,6 +1,6 @@
 # Matlab-Gpib
 Sammlung diverser Dateien für die Ansteuerung von Labor-Geräten
-mit der NI GPIB-USB HS2 Schnittstelle.
+mit der NI GPIB-USB HS2 Schnittstelle (und auch USB/virtual Comport).
 
 Bisher getestet:
 GPIB /IEE488:
