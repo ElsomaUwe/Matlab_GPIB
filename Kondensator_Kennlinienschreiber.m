@@ -14,9 +14,9 @@ dateiname = input('Bitte geben Sie einen Dateinamen ein (ohne Dateierweiterung):
 filename = strcat(dateiname, '.xlsx'); % Hier als Beispiel '.txt', ändern Sie es entsprechend.
 
 f_start = 0.0;
-f_stop  = 10000.0;
-f_step  = 500;
-C_max_nF   = 0;
+f_stop  = 200.0;
+f_step  = 0.5;
+C_max_nF   = 700000;
 Vbias   = 10.0;
 oscLvl  = 1.0;
 
