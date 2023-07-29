@@ -109,6 +109,11 @@ classdef HP4192A
             s = sprintf("FR+%fEN",f);
             obj.send(s);
         end
+
+        function setOscLevel(obj,f)
+            s = sprintf("OL+%fEN",f);
+            obj.send(s);
+        end
         function setSpotBias(obj,f)
             s = sprintf("BI+%fEN",f);
             obj.send(s);

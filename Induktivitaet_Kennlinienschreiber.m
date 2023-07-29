@@ -6,18 +6,27 @@ close all;
 
 instrreset;
 
-filename = 'C_Pan680uF35V.xlsx';
+dateiname = 'C_measurement.xlsx';
 
-f_start = 0.20;
-f_stop  = 200.0;
-f_step  = 0.2;
-C_max_nF   = 1000000;
-Vbias   = 10.0;
-oscLvl  = 0.1;
+dateiname = input('Bitte geben Sie einen Dateinamen ein (ohne Dateierweiterung): ', 's');
+
+% Fügen Sie die gewünschte Dateierweiterung hinzu (z. B. '.txt' oder '.mat')
+filename = strcat(dateiname, '.xlsx'); % Hier als Beispiel '.txt', ändern Sie es entsprechend.
+
+f_start = 0.10;
+f_stop  = 100.0;
+f_step  = 0.5;
+C_max_nF   = 0;
+Vbias   = 0.0;
+oscLvl  = 1.0;
 
 % Vorbereiten der Messdaten
 sampleRate = 0.5;      % Abtastrate in Sekunden
 f = [f_start:f_step:f_stop]';
+% miminale Frequenz ist 5Hz
+if f(1) == 0
+    f(1) = 0.005;
+end
 numSamples = length(f);
 
 Z = zeros(numSamples, 1);
@@ -25,6 +34,7 @@ R = zeros(numSamples, 1);
 C = zeros(numSamples, 1);
 RC = zeros(numSamples, 1);
 L = zeros(numSamples, 1);
+RL = zeros(numSamples, 1);
 xL = zeros(numSamples, 1);
 QC = zeros(numSamples, 1);
 QL = zeros(numSamples, 1);
@@ -36,22 +46,39 @@ tlog = zeros(numSamples, 1);
 tstart= 0;
 
 % Grafik erstellen
-h= figure;
+h= figure
 
-subplot(2, 2, 1); % Oben links 
-p = plot(f,Z);
+% L oben links
+subplot(2, 2, 1); 
+p = plot(f,L);
 grid on;
-title('Impedanz');
+title('Induktivität');
 xlabel('f/kHz');
-ylabel('Z/Ohm');
+ylabel('L');
+xlim([f(1) f(end)]);
+if C_max_nF ~= 0.0
+    ylim([0 C_max_nF]);
+end
+%xticks([0:20:tMax]);
+%yticks([20:10:300]);
+p.XDataSource = 'f';
+p.YDataSource = 'L';
+
+% R oben rechts
+subplot(2, 2, 2); 
+p = plot(f,RL);
+grid on;
+title('Widerstand');
+xlabel('f/kHz');
+ylabel('R/Ohm');
 xlim([f(1) f(end)]);
 % ylim([0 50]);
 %xticks([0:20:tMax]);
 %yticks([20:10:300]);
 p.XDataSource = 'f';
-p.YDataSource = 'Z';
+p.YDataSource = 'RL';
 
-subplot(2, 2, 2); % Oben rechts
+subplot(2, 2, 3); % Phi unten links
 p = plot(f,Phi);
 grid on;
 title('Phasenwinkel');
@@ -64,33 +91,19 @@ yticks([-180:30:180]);
 p.XDataSource = 'f';
 p.YDataSource = 'Phi';
 
-subplot(2, 2, 3); % unten links
-p = plot(f,L);
+subplot(2, 2, 4); % Güte unten rechts
+p = plot(f,QL);
 grid on;
-title('Induktivität');
+title('Güte');
 xlabel('f/kHz');
-ylabel('L/uH');
+ylabel('Güte');
 xlim([f(1) f(end)]);
 % ylim([0 50]);
 %xticks([0:20:tMax]);
 %yticks([20:10:300]);
 p.XDataSource = 'f';
-p.YDataSource = 'L';
+p.YDataSource = 'QL';
 
-subplot(2, 2, 4); % unten rechts
-p = plot(f,C);
-grid on;
-title('Kapazität');
-xlabel('f/kHz');
-ylabel('C/nF');
-xlim([f(1) f(end)]);
-if C_max_nF ~= 0.0
-    ylim([0 C_max_nF]);
-end
-%xticks([0:20:tMax]);
-%yticks([20:10:300]);
-p.XDataSource = 'f';
-p.YDataSource = 'C';
 
 run('GPIB_preludium.m');
 
@@ -115,7 +128,9 @@ end
 rcl.setModeLQ();
 rcl.setSpotFreq(f(1));
 rcl.setOscLevel(oscLvl);
+rcl.setCircuitmodeSeries();
 
+rcl.setModeLR();
 rcl.trigger;
 [value qualifier] = rcl.readAll;
 
@@ -123,39 +138,34 @@ rcl.trigger;
 for i = 1:numSamples
     % Messdaten abrufen
     rcl.setSpotFreq(f(i));
-    %L
-    rcl.setModeLQ();
-    rcl.trigger();
-    [value qualifier] = rcl.readAll;
-    L(i) = value(1)*1E6;   
-    temp = rcl.readAll_B();
-    xL(i) = temp{1,1}*1E6;
     
-    QL(i) = value(2);
     %C
-    rcl.setModeCR();
+    rcl.setModeLR();
     rcl.trigger();
     [value qualifier] = rcl.readAll;
-    C(i) = value(1)*1E9;   
-    RC(i) = value(2);
+    L(i) = value(1);   
+    RL(i) = value(2);
     % QC(i) = value(2);
     if qualifier{1}(1) ~= 'N'
-        C(i) = 0;
+        L(i) = NaN;
     else
-        C(i) = C(i);
+        L(i) = L(i);
     end
     if qualifier{2}(1) ~= 'N'
-        RC(i) = 0;
+        RL(i) = NaN;
     else
-        RC(i) = RC(i);
+        RL(i) = RL(i);
     end
-
-    %Z
-    rcl.setModeZdeg();
-    rcl.trigger();
+    
+    rcl.setModeLQ();
     [value qualifier] = rcl.readAll;
-    Z(i) = value(1);   
-    Phi(i) = value(2);
+    QL(i) = value(2);
+    if qualifier{2}(1) ~= 'N'
+        QL(i) = NaN;
+    else
+        QL(i) = QC(i);
+    end
+        
     refreshdata(h);
     % Warten bis zur nächsten Messung
     pause(0.1);
@@ -166,8 +176,8 @@ rcl.setBiasOff();
 % Verbindung trennen
 myGpib.close(hRcl);
 
-col_names = {'f','Z','Phi','L','QL','C','RC'};
-save_vectors_to_csv(f,Z,Phi,L,QL,C,RC,col_names,filename);
+col_names = {'f','L','RL','QL'};
+save_vectors_to_csv(f,L,RL,QL,col_names,filename);
 
 % SRQ-Ereignisbehandlungsfunktion
 function handleSRQ(src, event)
