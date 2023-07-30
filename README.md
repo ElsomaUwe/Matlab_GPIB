@@ -20,7 +20,7 @@ Noch offen:
 1) Philips PM6624 Frequenzzähler - benötigt Adapter auf D-SUB25
 2) C10 Flussdichtemessgerät - benötigt noch SCPI-Erweiterund in der Firmware
 3) Fluke Kalibrier-Gerät (hat das überhaupt eine GPIB-Schnittstelle?)
-4) HP66309D Netzgerät
+4) HP66309D Netzgerät 15V/3A 12V/1.5A
 
 Desweiteren denkbar:
 -----------------------------
