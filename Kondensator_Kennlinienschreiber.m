@@ -5,18 +5,19 @@ clc;
 close all;
 
 instrreset;
+askforfilename = 0;
 
-dateiname = 'C_measurement.xlsx';
+dateiname = 'C_measurement';
 
+if askforfilename
 dateiname = input('Bitte geben Sie einen Dateinamen ein (ohne Dateierweiterung): ', 's');
-
-% Fügen Sie die gewünschte Dateierweiterung hinzu (z. B. '.txt' oder '.mat')
+end
 filename = strcat(dateiname, '.xlsx'); % Hier als Beispiel '.txt', ändern Sie es entsprechend.
 
-f_start = 0.0;
-f_stop  = 200.0;
+f_start = 0.5;
+f_stop  = 20.0;
 f_step  = 0.5;
-C_max_nF   = 700000;
+C_max_nF   = 0;
 Vbias   = 10.0;
 oscLvl  = 1.0;
 
@@ -91,17 +92,17 @@ p.XDataSource = 'f';
 p.YDataSource = 'Phi';
 
 subplot(2, 2, 4); % Güte unten rechts
-p = plot(f,QC);
+p = plot(f,Z);
 grid on;
-title('Güte');
+title('Impedanz');
 xlabel('f/kHz');
-ylabel('Güte');
+ylabel('Z / Ohm');
 xlim([f(1) f(end)]);
 % ylim([0 50]);
 %xticks([0:20:tMax]);
 %yticks([20:10:300]);
 p.XDataSource = 'f';
-p.YDataSource = 'QC';
+p.YDataSource = 'Z';
 
 
 run('GPIB_preludium.m');
@@ -164,7 +165,23 @@ for i = 1:numSamples
     else
         QC(i) = QC(i);
     end
-        
+    
+    rcl.setModeZdeg();
+    rcl.trigger;
+    [value qualifier] = rcl.readAll;
+    Z(i) = value(1);
+    if qualifier{1}(1) ~= 'N'
+        Z(i) = NaN;
+    else
+        Z(i) = Z(i);
+    end
+    Phi(i) = value(2);
+    if qualifier{2}(1) ~= 'N'
+        Phi(i) = NaN;
+    else
+        Phi(i) = Phi(i);
+    end
+      
     refreshdata(h);
     % Warten bis zur nächsten Messung
     pause(0.1);
@@ -175,8 +192,10 @@ rcl.setBiasOff();
 % Verbindung trennen
 myGpib.close(hRcl);
 
+save('measurementData','Z','Phi','C','RC','QC','f');
 col_names = {'f','C','RC','QC'};
 save_vectors_to_csv(f,C,RC,QC,col_names,filename);
+Darstellung;
 
 % SRQ-Ereignisbehandlungsfunktion
 function handleSRQ(src, event)

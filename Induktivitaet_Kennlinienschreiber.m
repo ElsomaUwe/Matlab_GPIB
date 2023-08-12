@@ -8,10 +8,10 @@ instrreset;
 
 dateiname = 'C_measurement.xlsx';
 
-dateiname = input('Bitte geben Sie einen Dateinamen ein (ohne Dateierweiterung): ', 's');
-
-% Fügen Sie die gewünschte Dateierweiterung hinzu (z. B. '.txt' oder '.mat')
-filename = strcat(dateiname, '.xlsx'); % Hier als Beispiel '.txt', ändern Sie es entsprechend.
+if dateiname = 'userinput'
+    dateiname = input('Bitte geben Sie einen Dateinamen ein (ohne Dateierweiterung): ', 's');
+    filename = strcat(dateiname, '.xlsx'); % Hier als Beispiel '.txt', ändern Sie es entsprechend.
+end
 
 f_start = 0.10;
 f_stop  = 100.0;
@@ -21,7 +21,6 @@ Vbias   = 0.0;
 oscLvl  = 1.0;
 
 % Vorbereiten der Messdaten
-sampleRate = 0.5;      % Abtastrate in Sekunden
 f = [f_start:f_step:f_stop]';
 % miminale Frequenz ist 5Hz
 if f(1) == 0
@@ -32,8 +31,8 @@ numSamples = length(f);
 Z = zeros(numSamples, 1);
 R = zeros(numSamples, 1);
 C = zeros(numSamples, 1);
-RC = zeros(numSamples, 1);
 L = zeros(numSamples, 1);
+RC = zeros(numSamples, 1);
 RL = zeros(numSamples, 1);
 xL = zeros(numSamples, 1);
 QC = zeros(numSamples, 1);
@@ -103,7 +102,6 @@ xlim([f(1) f(end)]);
 %yticks([20:10:300]);
 p.XDataSource = 'f';
 p.YDataSource = 'QL';
-
 
 run('GPIB_preludium.m');
 
