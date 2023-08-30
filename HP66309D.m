@@ -1,10 +1,10 @@
-classdef Keithley2700
+classdef HP66309D
     properties
         h
-        name = "Keithley 2700";
+        name = "HP66309D DC Source";
     end
     methods
-        function obj = Keithley2700(handle)
+        function obj = HP66309D(handle)
             %Konstruktor
             obj.h = handle;
         end
@@ -17,6 +17,13 @@ classdef Keithley2700
         function send(obj, c)
             fprintf(obj.h,c);
         end
+        function rxMsg = getIDN(obj)
+            fprintf(obj.h,"*IDN?");
+            rxMsg = fscanf(obj.h);
+        end
+
+        
+        
         function setValueOnly(obj)
             fprintf(obj.h, ':FORM:ELEM READ,UNIT,TST');
         end
@@ -72,31 +79,13 @@ classdef Keithley2700
             fprintf(obj.h,"FETCH?");
             rxMsg = fscanf(obj.h);
         end
-        function rxMsg = recall(obj)
-            fprintf(obj.h,"TRAC:DATA?");
-            rxMsg = fscanf(obj.h);
-        end
 
         function srq = checkSRQ(obj)
             obj.send('*STB?');
            % x = obj.read();
             x = str2num(fscanf(obj.h));
             srq = bitget(x, 4);
-        end
-        function close(obj,slot,ch)
-            s = sprintf("ROUTe:CLOSe (@%1d%02d)",slot,ch);
-            fprintf(obj.h,s);
-        end
-        function list = closeQ(obj)
-            s = sprintf("ROUTe:CLOSE?");
-            fprintf(obj.h,s);            
-            list = fscanf(obj.h);
-        end
-        function openAll(obj)
-            s = sprintf("ROUTe:OPEN:ALL");
-            fprintf(obj.h,s);            
-        end
-        
+        end        
 
     end
 end

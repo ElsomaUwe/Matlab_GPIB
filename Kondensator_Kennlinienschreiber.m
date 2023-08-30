@@ -5,7 +5,7 @@ clc;
 close all;
 
 instrreset;
-askforfilename = 0;
+askforfilename = 1;
 
 dateiname = 'C_measurement';
 
@@ -14,15 +14,15 @@ dateiname = input('Bitte geben Sie einen Dateinamen ein (ohne Dateierweiterung):
 end
 filename = strcat(dateiname, '.xlsx'); % Hier als Beispiel '.txt', ändern Sie es entsprechend.
 
-f_start = 0.5;
-f_stop  = 20.0;
-f_step  = 0.5;
+f_start = 1.0;
+f_stop  = 250.0;
+f_step  = 1.0;
 C_max_nF   = 0;
 Vbias   = 10.0;
 oscLvl  = 1.0;
 
 % Vorbereiten der Messdaten
-sampleRate = 0.5;      % Abtastrate in Sekunden
+sampleRate = 0.1;      % Abtastrate in Sekunden
 f = [f_start:f_step:f_stop]';
 % miminale Frequenz ist 5Hz
 if f(1) == 0
