@@ -13,7 +13,7 @@ dmm = Keithley2700(hDmm);
 dmm.reset();
 dmm.setTEMP();
 dmm.setValueOnly();
-dmm.setTempRefSim(34);
+dmm.setTempRefSim(22);
 
 if strcmp(hDmm.status,'open')
     disp('Keithley 2700 verbunden');
