@@ -9,6 +9,8 @@ GPIB /IEE488:
 2) Keithley 2700 Multimeter
 3) H&H IL800 elektronische Last bis 800W
 4) Philips PM2534 Multimeter
+5) Advantest R6144 programmierbare Spannungs- und Stromquelle
+6) HP66309D Netzgerät 15V/3A 12V/1.5A
 
 Ansteuerung über COM / virtual Comport:
 ----------------------------------------
@@ -18,10 +20,10 @@ Ansteuerung über COM / virtual Comport:
 Noch offen:
 ----------------------------------------
 1) Philips PM6624 Frequenzzähler - benötigt Adapter auf D-SUB25
-2) C10 Flussdichtemessgerät - benötigt noch SCPI-Erweiterund in der Firmware
-3) Fluke Kalibrier-Gerät (hat das überhaupt eine GPIB-Schnittstelle?)
-4) HP66309D Netzgerät 15V/3A 12V/1.5A
+2) Elsometer C10 Flussdichtemessgerät - benötigt noch SCPI-Erweiterung in der Firmware
+3) Fluke 5100B Calibrator
 
+   
 Desweiteren denkbar:
 -----------------------------
 Einbindung des GPIB-USB-Adapters von Patrik Schäfer und Uwe Rother
