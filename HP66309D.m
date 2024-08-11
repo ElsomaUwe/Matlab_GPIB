@@ -21,8 +21,17 @@ classdef HP66309D
             fprintf(obj.h,"*IDN?");
             rxMsg = fscanf(obj.h);
         end
-
         
+        function setVoltage(obj,value)
+            s= sprintf("VOLT %f",value);
+            fprintf(obj.h,s);
+        end
+
+        function setOnOff(obj,value)
+            s= sprintf("OUTP %d",value);
+            fprintf(obj.h,s);
+        end
+       
         
         function setValueOnly(obj)
             fprintf(obj.h, ':FORM:ELEM READ,UNIT,TST');

@@ -8,14 +8,14 @@ classdef Keithley2700
             %Konstruktor
             obj.h = handle;
         end
+        function send(obj, c)
+            fprintf(obj.h,c);
+        end
         function init(obj)
             
         end
         function reset(obj)
             fprintf(obj.h,'*RST');
-        end
-        function send(obj, c)
-            fprintf(obj.h,c);
         end
         function setValueOnly(obj)
             fprintf(obj.h, ':FORM:ELEM READ,UNIT,TST');
