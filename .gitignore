@@ -1,3 +1,8 @@
+# Pictures and measurements
+*.csv
+*.xlsx
+*.png
+ 
 # Prerequisites
 *.d
 
