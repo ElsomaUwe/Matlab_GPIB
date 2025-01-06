@@ -3,15 +3,15 @@
 clear;
 clc;
 close all;
+instrreset;
 
 run('GPIB_preludium.m');
 
 % GPIP Verbindung mit HP4192A aufbauen
-hRcl = myGpib.connect(gpibAddrHP4192A);
-rcl = HP4192A(hRcl);
+rcl = HP4192A(hHP4192A);
 % rcl.reset();
 
-if strcmp(hRcl.status,'open')
+if strcmp(rcl.h.status,'open')
     disp('HP4192A verbunden');
 else
     disp('KHP4192A nicht verbunden');
@@ -47,8 +47,8 @@ rcl.setRCL(1);
 rcl.setModeZdeg();
 rcl.setSpotFreq(11.0);
 
-rcl.trigger;
-[value qualifier] = rcl.readAll;
+rcl.trigger();
+[value qualifier] = rcl.readAll();
 
 % Messung starten
 % fprintf(gpibObj, 'EX');

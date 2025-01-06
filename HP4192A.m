@@ -10,6 +10,7 @@ classdef HP4192A
             disp("HP4192A Konstruktor");
             obj.h = handle;
         end
+        
         function init(obj)
             s = sprintf("%s init",obj.name);
             disp(s);

@@ -95,11 +95,10 @@ p.YDataSource = 'C';
 run('GPIB_preludium.m');
 
 % GPIP Verbindung mit HP4192A aufbauen
-hRcl = myGpib.connect(gpibAddrHP4192A);
-rcl = HP4192A(hRcl);
+rcl = HP4192A(hHP4192A);
 % rcl.reset();
 
-if strcmp(hRcl.status,'open')
+if strcmp(hHP4192A.status,'open')
     disp('HP4192A verbunden');
 else
     disp('KHP4192A nicht verbunden');

@@ -9,24 +9,34 @@ classdef R6144
     end
     
     methods
+        %Konstruktor
         function obj = R6144(handle)
-            %Konstruktor
             obj.h = handle;
             obj.status = deviceStatus.online;
         end
-        function init(obj)
-            disp("R6144 init\n")   
-         end
-        function reset(obj)
-            %fprintf(obj.h,'*RST');
-        end
+
         function send(obj, c)
             fprintf(obj.h,c);
         end
+
+        % init()
+        function init(obj)
+             s = sprintf("C");
+             obj.send(s);
+
+            disp("R6144 init\n")   
+        end
+
+        function reset(obj)
+            %fprintf(obj.h,'*RST');
+        end
+
+        
         function rxMsg = getIDN(obj)
             %this device has no SCPI
             rxMsg = obj.name;
         end
+        
         function setOnOff(obj,value)
             if (value == 0)
                 s = sprintf("H1");
@@ -39,17 +49,34 @@ classdef R6144
         function on(obj)
             s = sprintf("E1");
              obj.send(s);
-       end
+        end
+        
         function off(obj)
             s = sprintf("H1");
              obj.send(s);
-       end       
+        end       
+
+        function rxMsg = get_on(obj)
+            fprintf(obj.h,"E?");
+            rxMsg = fscanf(obj.h);
+        end
+
+        function rxMsg = get_off(obj)
+            fprintf(obj.h,"H?");
+            rxMsg = fscanf(obj.h);
+        end
+        
         function setVoltage(obj,voltage)
             s = sprintf("D%3fV",voltage);
             obj.send(s);
         end
-       
+
+        function setCurrend(obj,voltage)
+            s = sprintf("D%3fV",voltage);
+            obj.send(s);
+        end
         
     end
 end
 
+rxMsg = fscanf(obj.h);

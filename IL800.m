@@ -1,47 +1,80 @@
 classdef IL800
     properties
         h % handle
+        comPort
+        baudRate = 19200;  % Baudrate festlegen
     end
     methods
-        function obj = IL800(handle)
+        function obj = IL800(address)
             %Konstruktor
-            obj.h = handle;
+            disp('IL800 init');
+            if ischar(address) || isstring(address)
+                % Falls address ein String ist, wird davon ausgegangen, dass es sich um einen COM-Port handelt.
+                obj.comPort = address;
+                obj.h = serialport(address, obj.baudRate);
+                % Einstellungen anpassen (optional)
+                obj.h.DataBits = 8;  % Datenbits
+                obj.h.StopBits = 1;  % Stop-Bits
+                obj.h.Parity = 'none';  % Parität
+                obj.h.FlowControl = 'none';  % Flusskontrolle           
+            elseif isa(address,'gpib')
+                % Falls address eine Zahl ist, wird davon ausgegangen, dass es sich um eine GPIB-Adresse handelt.
+                obj.h = address; % Beispiel für die Initialisierung eines GPIB-Handles
+            else
+                error('Ungültiger Eingabedatentyp. Erwartet wird ein String für den COM-Port oder ein GPIB handler');
+            end
         end
         function send(obj, c)
-            fprintf(obj.h,c);
+            if(isa(obj.h,'internal.Serialport'))
+                writeline(obj.h,c);
+            elseif(isa(obj.h,'gpib'))
+                fprintf(obj.h,c);
+            else
+                error('Handle Typ ist weder COM noch gpib');
+            end
         end
+
+        function msg = read(obj)
+            if(isa(obj.h,'serialport'))
+                msg = readline(obj.h);
+            elseif(isa(obj.h,'gpib'))
+                msg = fscanf(obj.h);
+            else
+                error('Handle Typ ist weder COM noch gpib');
+            end
+        end
+        
        function reset(obj)
-            fprintf(obj.h,'*');
+            obj.send("*");
             disp("sent reset to IL800");
         end
         function init(obj)
             disp("Höcherl&Hackl elektronische Last\n")    
-            fprintf(obj.h,'*RST');
-            fprintf(obj.h,'*IDN?');
-            idnString = fscanf(obj.h);
-            disp(idnString);
+            obj.send("*");
+            obj.setMode2();
+            obj.setRange0();
          end
         function setCurrent(obj,current)
              s = sprintf("C%3.3f",current);
              s = strrep(s,' ','');
              disp(s);
-            fprintf(obj.h,s);            
+             obj.send(s);
         end
         function setMode2(obj)
-            fprintf(obj.h,'MODE2');
+            obj.send('MODE2');
         end
         function on(obj)
-            fprintf(obj.h,'ON');
+            obj.send("ON");
         end
         function off(obj)
-            fprintf(obj.h,'OFF');
+            obj.send("OFF");
         end
         function setRange0(obj)
-           fprintf(obj.h,"BC0");          
+           obj.send("BC0");          
        end
 
        function setRange1(obj)
-           fprintf(obj.h,"BC1");          
+           obj.send("BC1");          
        end
        function setRange2(obj)
            fprintf(obj.h,"BC2");          
