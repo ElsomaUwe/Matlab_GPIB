@@ -2,6 +2,9 @@
 Sammlung diverser Dateien für die Ansteuerung von Labor-Geräten
 mit der NI GPIB-USB HS2 Schnittstelle (und auch USB/virtual Comport).
 
+Achtung! gpib class lin iwrd in Matlab irgendwann nicht mehr unterstützt.
+Deswegen schrittweise portierung auf visa lib.
+
 Bisher getestet:
 GPIB /IEE488:
 ----------------
