@@ -7,7 +7,7 @@ close all;
 instrreset;
 run('GPIB_preludium.m');
 
-% GPIP Verbindung mit HP4192A aufbauen
+% GPIP Verbindung mit HP66309D aufbauen
 hSupply = myGpib.connect(gpibAddrHP66309D);
 supply = HP66309D(hSupply);
 % rcl.reset();
